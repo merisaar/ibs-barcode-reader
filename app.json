@@ -1,0 +1,12 @@
+{
+  "name": "allergy_tracker",
+  "displayName": "allergy_tracker",
+  "expo": {
+    "name": "allergy_tracker",
+    "slug": "allergy_tracker",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
