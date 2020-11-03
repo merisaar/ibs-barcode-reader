@@ -1,0 +1,8 @@
+version: "3"
+services:
+  react-native-docker:
+    build: .
+    ports:
+      - 19000:19001
+    volumes:
+      - I:\Documents\Personal projects\ibs-barcode-reader\allergy_tracker:/docker/path
