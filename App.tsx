@@ -16,12 +16,6 @@ export default function App() {
     <CameraComponent />
   ) : (
     <View style={styles.container}>
-      <Text></Text>
-      <TextInput
-        style={{ height: 40, borderColor: "gray", borderWidth: 1 }}
-        onChangeText={(text) => setValue(text)}
-        value={value}
-      />
       <Button
         onPress={() => setShowBarCodeButton(!showBarCodeButton)}
         title="Open camera"
