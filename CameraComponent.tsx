@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Camera } from 'expo-camera';
 import * as Permissions from 'expo-permissions';
+import { BarCodeScanner } from 'expo-barcode-scanner';
+
 
 export default function CameraComponent() {
   const [camera, setCamera] = useState<
@@ -38,7 +40,12 @@ export default function CameraComponent() {
   } else {
     return (
       <View style={{ flex: 1 }}>
-        <Camera ref={ref => { setCameraRef(ref) }} style={{ flex: 1 }} type={camera.type}>
+        <Camera 
+        ref={ref => { setCameraRef(ref) }} 
+        style={{ flex: 1 }} 
+        type={camera.type}
+        googleResponse={this.barcodeRecognized}
+        >
           <View
             style={{
               flex: 1,

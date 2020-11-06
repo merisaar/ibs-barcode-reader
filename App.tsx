@@ -1,3 +1,4 @@
+import { BarCodeScanner } from "expo-barcode-scanner";
 import React from "react";
 import {
   AppRegistry,
@@ -7,13 +8,13 @@ import {
   View,
   Button,
 } from "react-native";
-import CameraComponent from "./CameraComponent";
+import BarCodeScannerComponent from "./BarCodeScanner";
 
 export default function App() {
   const [value, setValue] = React.useState("");
   const [showBarCodeButton, setShowBarCodeButton] = React.useState(false);
   return showBarCodeButton ? (
-    <CameraComponent />
+    <BarCodeScannerComponent />
   ) : (
     <View style={styles.container}>
       <Button

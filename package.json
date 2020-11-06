@@ -10,6 +10,7 @@
   "dependencies": {
     "@react-native-community/push-notification-ios": "^1.7.1",
     "expo": "~39.0.2",
+    "expo-barcode-scanner": "^9.0.0",
     "expo-camera": "~9.0.0",
     "expo-contacts": "~8.5.0",
     "expo-sensors": "~9.1.0",
