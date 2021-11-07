@@ -1,6 +1,6 @@
 import os
 from django.http import HttpResponse
-from django.http.response import HttpResponseBadRequest, HttpResponseNotAllowed
+from django.http.response import HttpResponseBadRequest, HttpResponseNotAllowed, HttpResponseNotFound
 import requests
 from django.views.generic.edit import View
 from food_information.models import FoodEntry
@@ -32,6 +32,16 @@ def save_foodentry(ean, ingredients, allergens):
     food_entry.allergens = allergens
     food_entry.save()
     return food_entry
+
+
+class CleanDataBase(View):
+    def get(self, request):
+        try:
+            all_food_details = FoodEntry.objects.filter(
+                ingredients="").delete()
+            return HttpResponse()
+        except:
+            return HttpResponseBadRequest("Bad request.")
 
 
 class FoodEntryListView(View):
@@ -74,6 +84,8 @@ class FoodEntryDetailView(View):
                 "<p id=\"product-ingredients\">", "</p>", ingredients_html, False)
             includes_allergens = getTextFromWordToWord("<td>", "</td>", getTextFromWordToWord(
                 "Sisältää</td>", "</tr>", ingredients_html, False), False)
+            if(ingredients == ""):
+                return HttpResponseNotFound("Ingredients not found.")
             food_detail = model_to_dict(save_foodentry(
                 ean_parameter, ingredients, includes_allergens))
             return HttpResponse(json.dumps(food_detail), content_type='application/json')
