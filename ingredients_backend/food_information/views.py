@@ -1,6 +1,6 @@
 import os
 from django.http import HttpResponse
-from django.http.response import HttpResponseBadRequest, HttpResponseNotAllowed, HttpResponseNotFound
+from django.http.response import HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed, HttpResponseNotFound
 import requests
 from django.views.generic.edit import View
 from food_information.models import FoodEntry
@@ -12,6 +12,7 @@ from django.forms.models import model_to_dict
 
 
 def getTextFromWordToWord(firstWord, lastWord, textToFindIn, includeWords=True):
+    textToFindIn = textToFindIn.replace("<b>", "").replace("</b>", "")
     firstIndex = textToFindIn.find(firstWord)
     if(firstIndex == -1):
         print(firstWord + " not found.")
@@ -23,11 +24,12 @@ def getTextFromWordToWord(firstWord, lastWord, textToFindIn, includeWords=True):
     lastIndex = textFromFirstWord.find(lastWord)
     if(includeWords):
         return textFromFirstWord[:(lastIndex+len(lastWord))]
-    return textFromFirstWord[:lastIndex]
+    return textFromFirstWord[:lastIndex].strip()
 
 
-def save_foodentry(ean, ingredients, allergens):
+def save_foodentry(ean, name, ingredients, allergens):
     food_entry = FoodEntry.objects.create(ean=ean)
+    food_entry.name = name
     food_entry.ingredients = ingredients
     food_entry.allergens = allergens
     food_entry.save()
@@ -37,11 +39,18 @@ def save_foodentry(ean, ingredients, allergens):
 class CleanDataBase(View):
     def get(self, request):
         try:
-            all_food_details = FoodEntry.objects.filter(
+            FoodEntry.objects.filter(
                 ingredients="").delete()
             return HttpResponse()
         except:
             return HttpResponseBadRequest("Bad request.")
+
+    # def post(self, request):
+    #     try:
+    #         FoodEntry.objects.all().delete()
+    #         return HttpResponse()
+    #     except:
+    #         return HttpResponseBadRequest("Bad request.")
 
 
 class FoodEntryListView(View):
@@ -54,14 +63,20 @@ class FoodEntryListView(View):
             return HttpResponseBadRequest("Bad request.")
 
     # @csrf_exempt
-    # def post(self, request, *args, **kwargs):
-    #     food_entry_request = self.FoodEntry(request.POST)
-    #     print(food_entry_request)
-    #     food_details = save_foodentry(
-    #         food_entry_request.ingredients,
-    #         food_entry_request.ingredients,
-    #         food_entry_request.allergens)
-    #     return HttpResponse(food_details)
+    def post(self, request):
+        request_body = json.loads(request.body)
+        ean = request_body["ean"]
+        print(ean)
+        try:
+            FoodEntry.objects.get(pk=str(ean))
+            return HttpResponseForbidden("Entry with " + str(ean) + " already exists.")
+        except FoodEntry.DoesNotExist:
+            food_details = save_foodentry(
+                ean,
+                request_body["name"],
+                request_body["ingredients"],
+                request_body["allergens"])
+            return HttpResponse(food_details)
 
 
 class FoodEntryDetailView(View):
@@ -84,8 +99,10 @@ class FoodEntryDetailView(View):
                 "<p id=\"product-ingredients\">", "</p>", ingredients_html, False)
             includes_allergens = getTextFromWordToWord("<td>", "</td>", getTextFromWordToWord(
                 "Sisältää</td>", "</tr>", ingredients_html, False), False)
+            name = getTextFromWordToWord(
+                "id=\"product-name\">", "</h1>", html_response, False)
             if(ingredients == ""):
                 return HttpResponseNotFound("Ingredients not found.")
             food_detail = model_to_dict(save_foodentry(
-                ean_parameter, ingredients, includes_allergens))
+                ean_parameter, name, ingredients, includes_allergens))
             return HttpResponse(json.dumps(food_detail), content_type='application/json')

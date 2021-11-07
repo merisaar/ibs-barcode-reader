@@ -1,5 +1,5 @@
 import { exportDefaultSpecifier } from "@babel/types";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   AppRegistry,
   StyleSheet,
@@ -13,6 +13,7 @@ import BarCodeScannerComponent from "./components/BarCodeScanner";
 
 export declare interface DataType {
   ean: string;
+  name: string;
   ingredients: string;
   allergens: string;
 }
@@ -22,15 +23,11 @@ export declare interface FodMapType {
 }
 
 export default function App() {
-  const [value, setValue] = React.useState<DataType | null>(null);
-  const [showBarCodeButton, setShowBarCodeButton] = React.useState(false);
+  const [value, setValue] = useState<DataType | null>(null);
+  const [showBarCodeButton, setShowBarCodeButton] = useState(false);
+  const [upcCode, setUpcCode] = useState("");
   const fodMapList: FodMapType[] = JSON.parse(require("./FodMapList.json"));
-  // useEffect(() => {
-  //   var filteredList = fodMapList.filter((fodMap: FodMapType) =>
-  //     ingredient.toLowerCase().includes(fodMap.ingredient.toLowerCase())
-  //   );
-  //   console.log(filteredList);
-  // }, [fodMapList]);
+
   const isFodMapFriendly = (ingredients: string | undefined): FodMapType[] => {
     if (ingredients === undefined) {
       return [];
@@ -61,16 +58,16 @@ export default function App() {
       return "low";
     }
   };
-  const getFodMapText = (fodMapList: FodMapType[]): string => {
-    var stringBuilder = "This food is not IBS friendly. Contains ";
+  const getFodMapText = (name: string, fodMapList: FodMapType[]): string => {
+    var stringBuilder = name + " is not IBS friendly. Contains ";
     var severityHighList = getFodMapHigh(fodMapList);
     var severityHighJoined = severityHighList
       .map((m) => m.ingredient)
-      .join(",");
+      .join(", ");
     var severityMediumList = getFodMapMedium(fodMapList);
     var severityMediumJoined = severityMediumList
       .map((m) => m.ingredient)
-      .join(",");
+      .join(", ");
     if (severityHighList.length > 0 && severityMediumList.length > 0) {
       stringBuilder += `ingredients with high FodMap value: ${severityHighJoined} and ingredients with medium FodMap value: ${severityMediumJoined}.`;
     } else if (severityHighList.length > 0) {
@@ -82,14 +79,38 @@ export default function App() {
     }
     return stringBuilder;
   };
-  const generateFodMapText = (ingredients: string | undefined): string => {
+  const generateFodMapText = (
+    name: string,
+    ingredients: string | undefined
+  ): string => {
     var filteredList = isFodMapFriendly(ingredients);
     var severityRank = checkSeverity(filteredList);
     if (severityRank === "low") {
-      return "This food is IBS friendly. Enjoy!";
+      return `${name} is IBS friendly. Enjoy!`;
     }
-    var text = getFodMapText(filteredList);
+    var text = getFodMapText(name, filteredList);
     return text;
+  };
+  const getUpcInformation = () => {
+    var url = `http://127.0.0.1:8000/foodinformation/${upcCode}/`;
+    fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          alert("Barcode not found. Try again.");
+        }
+        return res.json();
+      })
+      .then((response) => {
+        setValue(response);
+      })
+      .catch((e) => {
+        console.log("Error", e);
+      });
   };
 
   return showBarCodeButton ? (
@@ -101,13 +122,25 @@ export default function App() {
     <View style={styles.container}>
       <Button
         onPress={() => setShowBarCodeButton(!showBarCodeButton)}
-        title="Open camera"
+        title="Scan barcode"
       >
         Open barcode scanner
       </Button>
+      <Text style={styles.text}>or</Text>
+      <TextInput
+        style={styles.input}
+        keyboardType="numeric"
+        underlineColorAndroid="transparent"
+        placeholder="Add ean here"
+        autoCapitalize="none"
+        onChangeText={setUpcCode}
+        maxLength={15}
+        onEndEditing={() => getUpcInformation()}
+      />
+
       {value != null && (
         <Text style={styles.text}>
-          {generateFodMapText(value?.ingredients)}
+          {generateFodMapText(value?.name, value?.ingredients)}
         </Text>
       )}
     </View>
@@ -124,5 +157,11 @@ const styles = StyleSheet.create({
   text: {
     textAlign: "center",
     marginTop: 20,
+  },
+  input: {
+    margin: 15,
+    height: 40,
+    width: "35%",
+    borderWidth: 1,
   },
 });
