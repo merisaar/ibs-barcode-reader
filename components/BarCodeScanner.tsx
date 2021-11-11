@@ -6,7 +6,7 @@ import { DataType } from "../App";
 export declare interface BarCodeScannerPropTypes {
   setData: React.Dispatch<React.SetStateAction<DataType | null>>;
   setShowBarCodeButton: React.Dispatch<React.SetStateAction<boolean>>;
-  getIngredientsJson: () => Promise<any>;
+  getIngredientsJson: (upcCode: string) => Promise<Response>;
 }
 export default function BarCodeScannerComponent({
   setData,
@@ -39,13 +39,14 @@ export default function BarCodeScannerComponent({
     }
   }, [upcData]);
   const getUpcInformation = () => {
-    getIngredientsJson()
+    getIngredientsJson(upcCode)
       .then((res) => {
+        console.log(res)
         if (!res.ok) {
-          alert("Barcode not found. Try again.");
           setScanned(false);
           setData(null);
           setShowBarCodeButton(false);
+          alert("Barcode not found. Try again.");
         }
         return res.json();
       })
@@ -53,7 +54,7 @@ export default function BarCodeScannerComponent({
         setUpcData(response);
       })
       .catch((e) => {
-        alert("An error happened on processing the request. Please try again.")
+        console.log("An error happened on processing the request. Please try again.")
         setScanned(false);
         setData(null);
         console.log("Error", e);

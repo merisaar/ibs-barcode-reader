@@ -91,7 +91,7 @@ export default function App() {
     return text;
   };
 
-  const getIngredientsJson = function () {
+  const getIngredientsJson = (upcCode: string) => {
     var url = `https://ingredients-ibs-api.herokuapp.com/foodinformation/${upcCode}/`;
     return fetch(url, {
       method: "GET",
@@ -102,8 +102,9 @@ export default function App() {
   }
 
   const getUpcInformation = () => {
-    getIngredientsJson()
+    getIngredientsJson(upcCode)
       .then((res) => {
+        console.log(res)
         if (!res.ok) {
           alert("Barcode not found. Try again.");
         }
