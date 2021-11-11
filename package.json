@@ -8,6 +8,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-native-community/cli": "^6.1.0",
     "@react-native-community/push-notification-ios": "^1.7.1",
     "expo": "^43.0.0",
     "expo-barcode-scanner": "~11.1.2",
@@ -18,13 +19,14 @@
     "expo-updates": "~0.10.13",
     "react": "17.0.1",
     "react-dom": "17.0.1",
-    "react-native": "0.64.2",
+    "react-native": "0.64.3",
     "react-native-camera": "^3.40.0",
     "react-native-gesture-handler": "~1.10.2",
     "react-native-reanimated": "~2.2.0",
     "react-native-screens": "~3.8.0",
-    "react-native-unimodules": "~0.15.0",
-    "react-native-web": "0.17.1"
+    "react-native-web": "0.17.1",
+    "expo-status-bar": "~1.1.0",
+    "react-native-safe-area-context": "3.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
@@ -38,5 +40,7 @@
   "jest": {
     "preset": "react-native"
   },
-  "private": true
+  "private": true,
+  "name": "ibs-barcode-reader",
+  "version": "1.0.0"
 }
