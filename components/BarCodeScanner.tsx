@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Text, View, StyleSheet, Button, TextInput } from "react-native";
 import { BarCodeScanner } from "expo-barcode-scanner";
-import { unstable_renderSubtreeIntoContainer } from "react-dom";
 import { DataType } from "../App";
 
 export declare interface BarCodeScannerPropTypes {
   setData: React.Dispatch<React.SetStateAction<DataType | null>>;
   setShowBarCodeButton: React.Dispatch<React.SetStateAction<boolean>>;
+  getIngredientsJson: () => Promise<any>;
 }
 export default function BarCodeScannerComponent({
   setData,
   setShowBarCodeButton,
+  getIngredientsJson
 }: BarCodeScannerPropTypes) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
@@ -37,15 +38,8 @@ export default function BarCodeScannerComponent({
       setShowBarCodeButton(false);
     }
   }, [upcData]);
-
   const getUpcInformation = () => {
-    var url = `http://127.0.0.1:8000/foodinformation/${upcCode}/`;
-    fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
+    getIngredientsJson()
       .then((res) => {
         if (!res.ok) {
           alert("Barcode not found. Try again.");
@@ -59,10 +53,14 @@ export default function BarCodeScannerComponent({
         setUpcData(response);
       })
       .catch((e) => {
+        alert("An error happened on processing the request. Please try again.")
+        setScanned(false);
+        setData(null);
         console.log("Error", e);
       });
   };
   const handleBarCodeScanned = ({ type, data }: { type: any; data: any }) => {
+    console.log("type", type)
     setScanned(true);
     setUpcCode(data);
   };

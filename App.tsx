@@ -1,4 +1,3 @@
-import { exportDefaultSpecifier } from "@babel/types";
 import React, { useEffect, useState } from "react";
 import {
   AppRegistry,
@@ -91,14 +90,19 @@ export default function App() {
     var text = getFodMapText(name, filteredList);
     return text;
   };
-  const getUpcInformation = () => {
-    var url = `http://127.0.0.1:8000/foodinformation/${upcCode}/`;
-    fetch(url, {
+
+  const getIngredientsJson = function () {
+    var url = `https://ingredients-ibs-api.herokuapp.com/foodinformation/${upcCode}/`;
+    return fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
     })
+  }
+
+  const getUpcInformation = () => {
+    getIngredientsJson()
       .then((res) => {
         if (!res.ok) {
           alert("Barcode not found. Try again.");
@@ -117,6 +121,7 @@ export default function App() {
     <BarCodeScannerComponent
       setData={setValue}
       setShowBarCodeButton={setShowBarCodeButton}
+      getIngredientsJson={getIngredientsJson}
     />
   ) : (
     <View style={styles.container}>
