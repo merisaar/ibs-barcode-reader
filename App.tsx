@@ -25,16 +25,28 @@ export default function App() {
   const [value, setValue] = useState<DataType | null>(null);
   const [showBarCodeButton, setShowBarCodeButton] = useState(false);
   const [upcCode, setUpcCode] = useState("");
-  const fodMapList: FodMapType[] = JSON.parse(require("./FodMapList.json"));
+  const [intolerancesInformationText, setIntolerancesInformationText] = useState("");
+  useEffect(() => {
+    if (value != null) {
+      async function getintolerancesInformationText() {
+        var informationText = await generateFodMapText(value?.name ? value?.name : "", value?.ingredients)
+        setIntolerancesInformationText(informationText);
+      }
+      getintolerancesInformationText()
+    }
+  }, []);
 
-  const isFodMapFriendly = (ingredients: string | undefined): FodMapType[] => {
+  useEffect(() => {
+    setUpcCode("")
+  }, [value])
+
+  const isFodMapFriendly = async (ingredients: string | undefined): Promise<FodMapType[]> => {
     if (ingredients === undefined) {
       return [];
     }
-    var filteredList = fodMapList.filter((fodMap: FodMapType): any =>
-      ingredients.toLowerCase().includes(fodMap.ingredient.toLowerCase())
-    );
-    console.log(filteredList);
+    var ingredients_body = `{"ingredients": "${ingredients}"}`
+    var filteredList = await getFodMapList(ingredients_body)
+    console.log('filteredList', filteredList)
     return filteredList;
   };
   const getFodMapHigh = (filteredList: FodMapType[]) => {
@@ -78,11 +90,11 @@ export default function App() {
     }
     return stringBuilder;
   };
-  const generateFodMapText = (
+  const generateFodMapText = async (
     name: string,
     ingredients: string | undefined
-  ): string => {
-    var filteredList = isFodMapFriendly(ingredients);
+  ): Promise<string> => {
+    var filteredList = await isFodMapFriendly(ingredients);
     var severityRank = checkSeverity(filteredList);
     if (severityRank === "low") {
       return `${name} is IBS friendly. Enjoy!`;
@@ -100,12 +112,35 @@ export default function App() {
       },
     })
   }
+  const getFodMapList = (ingredients: string): any => {
+    var url = `https://ingredients-ibs-api.herokuapp.com/intolerances/ibs`;
+    console.log(ingredients)
+    return fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: ingredients
+    })
+      .then((res) => {
+        return res.json();
+      })
+      .then((response) => {
+        console.log("response is ", response)
+        return response
+      })
+      .catch((e) => {
+        console.log("Error", e);
+        return []
+      });
+  }
 
   const getUpcInformation = () => {
     getIngredientsJson(upcCode)
       .then((res) => {
         console.log(res)
         if (!res.ok) {
+          setValue(null);
           alert("Barcode not found. Try again.");
         }
         return res.json();
@@ -114,6 +149,7 @@ export default function App() {
         setValue(response);
       })
       .catch((e) => {
+        setValue(null);
         console.log("Error", e);
       });
   };
@@ -134,6 +170,7 @@ export default function App() {
       </Button>
       <Text style={styles.text}>or</Text>
       <TextInput
+        value={upcCode}
         style={styles.input}
         keyboardType="numeric"
         underlineColorAndroid="transparent"
@@ -144,9 +181,9 @@ export default function App() {
         onEndEditing={() => getUpcInformation()}
       />
 
-      {value != null && (
+      {intolerancesInformationText != "" && (
         <Text style={styles.text}>
-          {generateFodMapText(value?.name, value?.ingredients)}
+          {intolerancesInformationText}
         </Text>
       )}
     </View>

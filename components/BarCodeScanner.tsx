@@ -17,8 +17,6 @@ export default function BarCodeScannerComponent({
   const [scanned, setScanned] = useState(false);
   const [upcCode, setUpcCode] = useState("");
   const [upcData, setUpcData] = useState<any | null>(null);
-  const [showTextBox, setShowTextBox] = useState<boolean>(false);
-  const [text, onChangeText] = React.useState("");
   useEffect(() => {
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
@@ -41,20 +39,19 @@ export default function BarCodeScannerComponent({
   const getUpcInformation = () => {
     getIngredientsJson(upcCode)
       .then((res) => {
-        console.log(res)
         if (!res.ok) {
           setScanned(false);
           setData(null);
           setShowBarCodeButton(false);
-          alert("Barcode not found. Try again.");
+          alert("Ingredients not found. Try again.");
+        } else {
+          return res.json();
         }
-        return res.json();
       })
       .then((response) => {
         setUpcData(response);
       })
       .catch((e) => {
-        console.log("An error happened on processing the request. Please try again.")
         setScanned(false);
         setData(null);
         console.log("Error", e);
@@ -119,31 +116,25 @@ export default function BarCodeScannerComponent({
         // @ts-ignore
         onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
         style={StyleSheet.absoluteFillObject}
+        barCodeTypes={[BarCodeScanner.Constants.BarCodeType.ean13, BarCodeScanner.Constants.BarCodeType.ean8,
+        BarCodeScanner.Constants.BarCodeType.upc_a,
+        BarCodeScanner.Constants.BarCodeType.upc_e]}
       />
-      {showTextBox ? (
-        <TextInput
-          style={styles.input}
-          onChangeText={onChangeText}
-          value={text}
-        />
-      ) : (
+
+      <View style={styles.backButtonStyle}>
+        <Button
+          title={"Go back"}
+          onPress={() => setShowBarCodeButton(false)}
+        ></Button>
+      </View>
+      {!scanned && (
         <>
-          <View style={styles.backButtonStyle}>
-            <Button
-              title={"Go back"}
-              onPress={() => setShowBarCodeButton(false)}
-            ></Button>
+          <Text style={styles.titleText}>Scan the barcode.</Text>
+          <View style={styles.mockButtonStyle}>
+            <Button title={"Tap to Scan Mock"} onPress={() => MockScan()} />
           </View>
-          {!scanned && (
-            <>
-              <Text style={styles.titleText}>Scan the barcode.</Text>
-              <View style={styles.mockButtonStyle}>
-                <Button title={"Tap to Scan Mock"} onPress={() => MockScan()} />
-              </View>
-            </>
-          )}
         </>
       )}
-    </View>
+    </View >
   );
 }
