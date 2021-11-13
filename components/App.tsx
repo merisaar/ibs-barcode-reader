@@ -8,7 +8,7 @@ import {
   Button,
   ListViewBase,
 } from "react-native";
-import BarCodeScannerComponent from "./components/BarCodeScanner";
+import BarCodeScannerComponent from "./BarCodeScanner";
 
 export declare interface DataType {
   ean: string;
@@ -178,7 +178,7 @@ export default function App() {
         autoCapitalize="none"
         onChangeText={setUpcCode}
         maxLength={15}
-        onEndEditing={() => getUpcInformation()}
+        onSubmitEditing={() => getUpcInformation()}
       />
 
       {intolerancesInformationText != "" && (
