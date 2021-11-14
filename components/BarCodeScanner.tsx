@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, StyleSheet, Button, TextInput } from "react-native";
+import { Text, View, StyleSheet, Button, ActivityIndicator } from "react-native";
 import { BarCodeScanner } from "expo-barcode-scanner";
-import { DataType } from "../App";
+import { DataType } from "./App";
 
 export declare interface BarCodeScannerPropTypes {
   setData: React.Dispatch<React.SetStateAction<DataType | null>>;
@@ -15,6 +15,7 @@ export default function BarCodeScannerComponent({
 }: BarCodeScannerPropTypes) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [upcCode, setUpcCode] = useState("");
   const [upcData, setUpcData] = useState<any | null>(null);
   useEffect(() => {
@@ -26,6 +27,7 @@ export default function BarCodeScannerComponent({
 
   useEffect(() => {
     if (upcCode != "") {
+      setLoading(true);
       getUpcInformation();
     }
   }, [upcCode]);
@@ -33,6 +35,7 @@ export default function BarCodeScannerComponent({
   useEffect(() => {
     if (upcData != null) {
       setData(upcData);
+      setLoading(false);
       setShowBarCodeButton(false);
     }
   }, [upcData]);
@@ -72,38 +75,9 @@ export default function BarCodeScannerComponent({
   const MockScan = () => {
     setScanned(true);
     setUpcCode("6416453015234");
-    alert(`Bar code with data 6416453015234 has been scanned!`);
+    console.log(`Bar code with data 6416453015234 has been scanned!`);
   };
-  const styles = StyleSheet.create({
-    titleText: {
-      fontSize: 20,
-      fontWeight: "bold",
-      textAlign: "center",
-      bottom: 20,
-    },
-    input: {
-      position: "absolute",
-      justifyContent: "center",
-      alignItems: "center",
-      height: 50,
-      width: "95%",
-      margin: 12,
-      borderWidth: 1,
-    },
-    backButtonStyle: {
-      position: "absolute",
-      marginBottom: 10,
-      height: "10%",
-      width: "20%",
-    },
-    mockButtonStyle: {
-      position: "absolute",
-      right: 0,
-      marginBottom: 10,
-      height: "10%",
-      width: "20%",
-    },
-  });
+
   return (
     <View
       style={{
@@ -112,15 +86,19 @@ export default function BarCodeScannerComponent({
         justifyContent: "flex-end",
       }}
     >
-      <BarCodeScanner
-        // @ts-ignore
-        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-        style={StyleSheet.absoluteFillObject}
-        barCodeTypes={[BarCodeScanner.Constants.BarCodeType.ean13, BarCodeScanner.Constants.BarCodeType.ean8,
-        BarCodeScanner.Constants.BarCodeType.upc_a,
-        BarCodeScanner.Constants.BarCodeType.upc_e]}
-      />
-
+      <View style={styles.barcodeScannerContainer}
+      >
+        {loading ? <ActivityIndicator size="large" color={"#003319"} />
+          :
+          <BarCodeScanner
+            // @ts-ignore
+            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+            style={StyleSheet.absoluteFillObject}
+            barCodeTypes={[BarCodeScanner.Constants.BarCodeType.ean13, BarCodeScanner.Constants.BarCodeType.ean8,
+            BarCodeScanner.Constants.BarCodeType.upc_a,
+            BarCodeScanner.Constants.BarCodeType.upc_e]}
+          />}
+      </View>
       <View style={styles.backButtonStyle}>
         <Button
           title={"Go back"}
@@ -138,3 +116,37 @@ export default function BarCodeScannerComponent({
     </View >
   );
 }
+const styles = StyleSheet.create({
+  titleText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
+    bottom: 20,
+  },
+  input: {
+    position: "absolute",
+    justifyContent: "center",
+    alignItems: "center",
+    height: 50,
+    width: "95%",
+    margin: 12,
+    borderWidth: 1,
+  },
+  backButtonStyle: {
+    position: "absolute",
+    marginBottom: 10,
+    height: "10%",
+    width: "20%",
+  },
+  mockButtonStyle: {
+    position: "absolute",
+    right: 0,
+    marginBottom: 10,
+    height: "10%",
+    width: "20%",
+  },
+  barcodeScannerContainer: {
+    flex: 1,
+    justifyContent: "center"
+  }
+});

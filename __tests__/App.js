@@ -8,3 +8,6 @@ import renderer from 'react-test-renderer';
 it('renders correctly', () => {
   renderer.create(<App />);
 });
+it("BarCodeScanner renders correctly", () => {
+  renderer.create(<BarCodeScannerComponent></BarCodeScannerComponent>)
+})
